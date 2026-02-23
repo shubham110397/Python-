@@ -1,4 +1,4 @@
-name: Prime CI
+name: Prime CI with Allure
 
 on:
   push:
@@ -17,8 +17,29 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install dependencies
+        run: |
+          pip install pytest allure-pytest
 
-      - name: Run tests
-        run: pytest
+      - name: Run tests with Allure
+        run: |
+          pytest --alluredir=allure-results
+
+      - name: Install Allure CLI
+        run: |
+          sudo apt-get install -y default-jre
+          wget https://github.com/allure-framework/allure2/releases/latest/download/allure-2.27.0.tgz
+          tar -xvzf allure-2.27.0.tgz
+          sudo mv allure-2.27.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+
+      - name: Generate Allure Report
+        run: |
+          allure generate allure-results --clean -o allure-report
+
+      - name: Upload Allure Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
